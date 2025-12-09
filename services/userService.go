@@ -76,6 +76,7 @@ func (s *userServiceImpl) Register(ctx context.Context, username, password, emai
 		Password:  string(hashedPassword),
 		Email:     email,
 		Status:    "offline",
+		LastSeen:  time.Now(),
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
