@@ -103,7 +103,7 @@ func RouterConfig(db *gorm.DB, redisClient interface{}) *gin.Engine {
 		// @Failure 400 {object} object{error=string,message=string}
 		// @Failure 409 {object} object{error=string,message=string}
 		// @Router /api/v1/register [post]
-		api.POST("/register", httpHandler.Register)
+		api.POST("/register", httpHandler.Register)//
 		
 		// @Summary 用户登录
 		// @Description 用户登录获取访问令牌
