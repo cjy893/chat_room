@@ -26,29 +26,33 @@ import (
 // Endpoints:
 //
 // Public Routes:
-//   POST /api/v1/register - User registration
-//   POST /api/v1/login - User login
+//
+//	POST /api/v1/register - User registration
+//	POST /api/v1/login - User login
 //
 // Protected Routes (require authentication):
-//   GET /api/v1/users - Get online users list
-//   GET /api/v1/users/online - Get online users list
-//   GET /api/v1/rooms/:room_id/messages - Get chat history for a room
-//   GET /api/v1/rooms/:room_id/messages/search - Search messages in a room
-//   GET /api/v1/rooms/:room_id/unread - Get unread message count for a room
-//   POST /api/v1/rooms/:room_id/read - Mark messages as read
-//   DELETE /api/v1/messages/:message_id - Recall a message
-//   POST /api/v1/rooms - Create a new chat room
-//   POST /api/v1/rooms/:room_id/join - Join a room
-//   POST /api/v1/rooms/:room_id/leave - Leave a room
-//   GET /api/v1/rooms/:room_id/members - Get room members
+//
+//	GET /api/v1/users - Get online users list
+//	GET /api/v1/users/online - Get online users list
+//	GET /api/v1/rooms/:room_id/messages - Get chat history for a room
+//	GET /api/v1/rooms/:room_id/messages/search - Search messages in a room
+//	GET /api/v1/rooms/:room_id/unread - Get unread message count for a room
+//	POST /api/v1/rooms/:room_id/read - Mark messages as read
+//	DELETE /api/v1/messages/:message_id - Recall a message
+//	POST /api/v1/rooms - Create a new chat room
+//	POST /api/v1/rooms/:room_id/join - Join a room
+//	POST /api/v1/rooms/:room_id/leave - Leave a room
+//	GET /api/v1/rooms/:room_id/members - Get room members
 //
 // WebSocket Routes:
-//   GET /ws - Establish general WebSocket connection
-//   GET /ws/rooms/:room_id - Establish WebSocket connection to a specific room
+//
+//	GET /ws - Establish general WebSocket connection
+//	GET /ws/rooms/:room_id - Establish WebSocket connection to a specific room
 //
 // Middlewares:
-//   CORS - Cross-Origin Resource Sharing support
-//   Auth - JWT token authentication
+//
+//	CORS - Cross-Origin Resource Sharing support
+//	Auth - JWT token authentication
 func RouterConfig(db *gorm.DB, redisClient interface{}) *gin.Engine {
 	router := gin.Default()
 
@@ -103,8 +107,8 @@ func RouterConfig(db *gorm.DB, redisClient interface{}) *gin.Engine {
 		// @Failure 400 {object} object{error=string,message=string}
 		// @Failure 409 {object} object{error=string,message=string}
 		// @Router /api/v1/register [post]
-		api.POST("/register", httpHandler.Register)//
-		
+		api.POST("/register", httpHandler.Register) //测完
+
 		// @Summary 用户登录
 		// @Description 用户登录获取访问令牌
 		// @Tags 用户
@@ -130,7 +134,7 @@ func RouterConfig(db *gorm.DB, redisClient interface{}) *gin.Engine {
 			// @Router /api/v1/users [get]
 			// @Security Bearer
 			auth.GET("/users", httpHandler.GetUsers)
-			
+
 			// @Summary 获取在线用户列表
 			// @Description 获取当前在线的所有用户(同/api/v1/users)
 			// @Tags 用户
@@ -153,7 +157,7 @@ func RouterConfig(db *gorm.DB, redisClient interface{}) *gin.Engine {
 			// @Router /api/v1/rooms/{room_id}/messages [get]
 			// @Security Bearer
 			auth.GET("/rooms/:room_id/messages", httpHandler.GetHistory)
-			
+
 			// @Summary 搜索消息
 			// @Description 在指定房间中搜索包含关键词的消息
 			// @Tags 聊天
@@ -167,7 +171,7 @@ func RouterConfig(db *gorm.DB, redisClient interface{}) *gin.Engine {
 			// @Router /api/v1/rooms/{room_id}/messages/search [get]
 			// @Security Bearer
 			auth.GET("/rooms/:room_id/messages/search", httpHandler.SearchMessages)
-			
+
 			// @Summary 获取未读消息数
 			// @Description 获取指定房间中的未读消息数量
 			// @Tags 聊天
@@ -179,7 +183,7 @@ func RouterConfig(db *gorm.DB, redisClient interface{}) *gin.Engine {
 			// @Router /api/v1/rooms/{room_id}/unread [get]
 			// @Security Bearer
 			auth.GET("/rooms/:room_id/unread", httpHandler.GetUnreadCount)
-			
+
 			// @Summary 标记消息为已读
 			// @Description 将指定消息标记为已读
 			// @Tags 聊天
@@ -194,7 +198,7 @@ func RouterConfig(db *gorm.DB, redisClient interface{}) *gin.Engine {
 			// @Router /api/v1/rooms/{room_id}/read [post]
 			// @Security Bearer
 			auth.POST("/rooms/:room_id/read", httpHandler.MarkAsRead)
-			
+
 			// @Summary 撤回消息
 			// @Description 撤回已发送的消息
 			// @Tags 聊天
@@ -223,7 +227,7 @@ func RouterConfig(db *gorm.DB, redisClient interface{}) *gin.Engine {
 			// @Router /api/v1/rooms [post]
 			// @Security Bearer
 			auth.POST("/rooms", httpHandler.CreateRoom)
-			
+
 			// @Summary 加入房间
 			// @Description 加入指定的聊天室
 			// @Tags 房间
@@ -236,7 +240,7 @@ func RouterConfig(db *gorm.DB, redisClient interface{}) *gin.Engine {
 			// @Router /api/v1/rooms/{room_id}/join [post]
 			// @Security Bearer
 			auth.POST("/rooms/:room_id/join", httpHandler.JoinRoom)
-			
+
 			// @Summary 离开房间
 			// @Description 离开指定的聊天室
 			// @Tags 房间
@@ -249,7 +253,7 @@ func RouterConfig(db *gorm.DB, redisClient interface{}) *gin.Engine {
 			// @Router /api/v1/rooms/{room_id}/leave [post]
 			// @Security Bearer
 			auth.POST("/rooms/:room_id/leave", httpHandler.LeaveRoom)
-			
+
 			// @Summary 获取房间成员
 			// @Description 获取指定房间的所有成员
 			// @Tags 房间
@@ -277,7 +281,7 @@ func RouterConfig(db *gorm.DB, redisClient interface{}) *gin.Engine {
 	// @Failure 401 {object} object{error=string}
 	// @Router /ws [get]
 	router.GET("/ws", wsHandler.Connect)
-	
+
 	// @Summary 建立房间WebSocket连接
 	// @Description 建立与特定房间的WebSocket连接并自动加入该房间
 	// @Tags WebSocket
