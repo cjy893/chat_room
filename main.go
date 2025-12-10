@@ -20,6 +20,7 @@ import (
 	"socket/models"
 	"socket/router"
 
+	"github.com/gin-contrib/cors"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -56,6 +57,15 @@ func main() {
 
 	// 初始化路由
 	r := router.RouterConfig(db, redisClient)
+
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000"}, // 前端地址
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * 60 * 60,
+	}))
 
 	// 启动服务器
 	log.Printf("Server starting on port %s", config.Conf.ServerPort)
@@ -105,11 +115,11 @@ func autoMigrate(db *gorm.DB) error {
 		&models.ReadReceipt{},
 		&models.TokenBlacklist{},
 	)
-	
+
 	if err != nil {
 		return fmt.Errorf("error during auto migration: %w", err)
 	}
-	
+
 	log.Println("Database migration completed successfully")
 	return nil
 }

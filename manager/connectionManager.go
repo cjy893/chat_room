@@ -301,8 +301,11 @@ func (cm *ConnectionManager) JoinRoom(roomID, userID string, role string) error 
 		return fmt.Errorf("检查成员资格失败: %w", err)
 	}
 
+	// 如果用户已经是成员，则不需要重复加入，直接通知即可
 	if isMember {
-		return fmt.Errorf("用户已是房间成员")
+		// 通知房间成员该成员上线
+		cm.notifyExistingMember(roomID, userID)
+		return nil
 	}
 
 	// 加入房间
@@ -435,6 +438,29 @@ func (cm *ConnectionManager) notifyNewMember(roomID, newMemberID string) {
 
 	for _, member := range members {
 		if member.ID != newMemberID {
+			cm.sendRoomNotification(roomID, member.ID, content)
+		}
+	}
+}
+
+func (cm *ConnectionManager) notifyExistingMember(roomID, userID string) {
+	// 获取成员信息
+	ctx := context.Background()
+	user, err := cm.userService.GetUserByID(ctx, userID)
+	if err != nil || user == nil {
+		return
+	}
+
+	content := fmt.Sprintf("用户 %s 回到了聊天室", user.Username)
+
+	// 获取房间所有成员（除了该成员自己）
+	members, err := cm.roomRepo.GetMembers(ctx, roomID)
+	if err != nil {
+		return
+	}
+
+	for _, member := range members {
+		if member.ID != userID {
 			cm.sendRoomNotification(roomID, member.ID, content)
 		}
 	}
