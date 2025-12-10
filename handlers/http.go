@@ -616,3 +616,44 @@ func (h *HTTPHandler) GetRoomMembers(c *gin.Context) {
 
 	utils.SuccessResponse(c, members)
 }
+
+// GetUserRooms retrieves the list of rooms that the authenticated user has joined.
+//
+// Returns information about all rooms the user is a member of.
+//
+// Request:
+//
+//	GET /api/v1/user/rooms
+//
+// Response:
+//
+//	{
+//	  "code": 200,
+//	  "message": "success",
+//	  "data": [
+//	    {
+//	      "id": "room_uuid",
+//	      "name": "Room Name",
+//	      "description": "Optional description",
+//	      "type": "private|group|channel",
+//	      "creator_id": "user_uuid",
+//	      "is_public": true,
+//	      "members": [...]
+//	    }
+//	  ]
+//	}
+func (h *HTTPHandler) GetUserRooms(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		utils.ErrorResponse(c, http.StatusUnauthorized, "未授权", nil)
+		return
+	}
+
+	rooms, err := h.chatService.GetUserRooms(c.Request.Context(), userID.(string))
+	if err != nil {
+		utils.ErrorResponse(c, http.StatusInternalServerError, "获取房间列表失败", err)
+		return
+	}
+
+	utils.SuccessResponse(c, rooms)
+}

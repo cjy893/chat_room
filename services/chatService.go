@@ -213,6 +213,10 @@ func (s *chatServiceImpl) GetRoomMembers(ctx context.Context, roomID string) ([]
 	return s.userRepo.GetByIDs(ctx, memberIDs)
 }
 
+func (s *chatServiceImpl) GetUserRooms(ctx context.Context, userID string) ([]*models.ChatRoom, error) {
+	return s.roomRepo.GetByUserID(ctx, userID)
+}
+
 func (s *chatServiceImpl) DeleteRoom(ctx context.Context, roomID, userID string) error {
 	// 检查权限（只有创建者可以删除）
 	room, err := s.roomRepo.GetByID(ctx, roomID)

@@ -262,6 +262,17 @@ func RouterConfig(db *gorm.DB, redisClient interface{}) *gin.Engine {
 			// @Router /api/v1/rooms/{room_id}/members [get]
 			// @Security Bearer
 			auth.GET("/rooms/:room_id/members", httpHandler.GetRoomMembers)
+			
+			// @Summary 获取用户加入的房间列表
+			// @Description 获取当前用户加入的所有房间
+			// @Tags 房间
+			// @Produce json
+			// @Success 200 {object} object{data=[]object{id=string,name=string,description=string,type=string,creator_id=string,is_public=bool,members=[]object{id=string,room_id=string,user_id=string,role=string}}}
+			// @Failure 401 {object} object{error=string,message=string}
+			// @Failure 500 {object} object{error=string,message=string}
+			// @Router /api/v1/user/rooms [get]
+			// @Security Bearer
+			auth.GET("/user/rooms", httpHandler.GetUserRooms)
 		}
 	}
 

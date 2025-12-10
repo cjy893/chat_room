@@ -61,5 +61,6 @@ type ChatService interface {
 	JoinRoom(ctx context.Context, roomID, userID, role string) error
 	LeaveRoom(ctx context.Context, roomID, userID string) error
 	GetRoomMembers(ctx context.Context, roomID string) ([]*models.User, error)
+	GetUserRooms(ctx context.Context, userID string) ([]*models.ChatRoom, error)
 	DeleteRoom(ctx context.Context, roomID, userID string) error
 }
