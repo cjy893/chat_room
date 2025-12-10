@@ -552,7 +552,8 @@ func (s *userServiceImpl) AcceptFriendRequest(ctx context.Context, userID, reque
 
 	// 更新状态为已接受
 	friendship.Status = "accepted"
-	friendship.AcceptedAt = time.Now()
+	now := time.Now()
+	friendship.AcceptedAt = &now
 
 	if err := s.friendRepo.Update(ctx, friendship); err != nil {
 		return fmt.Errorf("接受好友请求失败: %w", err)

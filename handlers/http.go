@@ -9,7 +9,10 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
 	"socket/models"
 	"socket/services"
 	"socket/utils"
@@ -656,6 +659,90 @@ func (h *HTTPHandler) GetUserRooms(c *gin.Context) {
 	}
 
 	utils.SuccessResponse(c, rooms)
+}
+
+// UploadFile handles file upload requests.
+//
+// Accepts multipart form data containing a file.
+// Saves the file to storage and returns a URL for accessing the file.
+//
+// Request:
+//
+//	POST /api/v1/upload
+//	Content-Type: multipart/form-data
+//	Form fields:
+//	  file: the file to upload
+//
+// Response:
+//
+//	{
+//	  "code": 200,
+//	  "message": "success",
+//	  "data": {
+//	    "url": "file_access_url",
+//	    "file_name": "original_file_name",
+//	    "file_size": 12345
+//	  }
+//	}
+func (h *HTTPHandler) UploadFile(c *gin.Context) {
+	// 获取上传的文件
+	file, err := c.FormFile("file")
+	if err != nil {
+		utils.ErrorResponse(c, http.StatusBadRequest, "文件上传失败", err)
+		return
+	}
+
+	// 生成唯一的文件名
+	filename := fmt.Sprintf("%d_%s", time.Now().Unix(), file.Filename)
+	
+	// 保存文件到本地（实际项目中可能会上传到云存储服务）
+	uploadDir := "./uploads"
+	if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
+		os.Mkdir(uploadDir, 0755)
+	}
+	
+	filePath := filepath.Join(uploadDir, filename)
+	if err := c.SaveUploadedFile(file, filePath); err != nil {
+		utils.ErrorResponse(c, http.StatusInternalServerError, "文件保存失败", err)
+		return
+	}
+
+	// 构造文件访问URL（实际项目中可能是CDN地址）
+	url := fmt.Sprintf("/uploads/%s", filename)
+
+	// 返回文件信息
+	utils.SuccessResponse(c, gin.H{
+		"url":       url,
+		"file_name": file.Filename,
+		"file_size": file.Size,
+	})
+}
+
+// GetFile serves uploaded files.
+//
+// Provides access to uploaded files by filename.
+//
+// Request:
+//
+//	GET /uploads/{filename}
+//
+// Response:
+//
+//	The requested file content
+func (h *HTTPHandler) GetFile(c *gin.Context) {
+	filename := c.Param("filename")
+	if filename == "" {
+		utils.ErrorResponse(c, http.StatusBadRequest, "文件名不能为空", nil)
+		return
+	}
+
+	filePath := filepath.Join("./uploads", filename)
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		utils.ErrorResponse(c, http.StatusNotFound, "文件不存在", nil)
+		return
+	}
+
+	c.File(filePath)
 }
 
 // AddFriend adds a friend to the current user's friend list.

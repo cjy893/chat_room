@@ -353,8 +353,35 @@ func RouterConfig(db *gorm.DB, redisClient interface{}) *gin.Engine {
 			// @Router /api/v1/friends/block [post]
 			// @Security Bearer
 			auth.POST("/friends/block", httpHandler.BlockUser)
+			
+			// 文件上传路由
+			// @Summary 上传文件
+			// @Description 上传文件并获取访问URL
+			// @Tags 文件
+			// @Accept multipart/form-data
+			// @Produce json
+			// @Param file formData file true "要上传的文件"
+			// @Success 200 {object} object{data=object{url=string,file_name=string,file_size=int}}
+			// @Failure 400 {object} object{error=string,message=string}
+			// @Failure 401 {object} object{error=string,message=string}
+			// @Failure 500 {object} object{error=string,message=string}
+			// @Router /api/v1/upload [post]
+			// @Security Bearer
+			auth.POST("/upload", httpHandler.UploadFile)
 		}
 	}
+	
+	// 文件访问路由（公开访问）
+	// @Summary 获取文件
+	// @Description 根据文件名获取已上传的文件
+	// @Tags 文件
+	// @Produce */*
+	// @Param filename path string true "文件名"
+	// @Success 200 {file} file "文件内容"
+	// @Failure 400 {object} object{error=string,message=string}
+	// @Failure 404 {object} object{error=string,message=string}
+	// @Router /uploads/{filename} [get]
+	router.GET("/uploads/:filename", httpHandler.GetFile)
 
 	// WebSocket路由
 	// @Summary 建立WebSocket连接

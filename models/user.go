@@ -28,12 +28,12 @@ type UserSession struct {
 }
 
 type Friend struct {
-	ID         string    `json:"id" gorm:"primaryKey"`
-	UserID     string    `json:"user_id" gorm:"index:idx_friend_pair,unique"`
-	FriendID   string    `json:"friend_id" gorm:"index:idx_friend_pair,unique"`
-	Status     string    `json:"status"` // pending, accepted, blocked
-	CreatedAt  time.Time `json:"created_at"`
-	AcceptedAt time.Time `json:"accepted_at"`
+	ID         string     `json:"id" gorm:"primaryKey"`
+	UserID     string     `json:"user_id" gorm:"index:idx_friend_pair,unique"`
+	FriendID   string     `json:"friend_id" gorm:"index:idx_friend_pair,unique"`
+	Status     string     `json:"status"` // pending, accepted, blocked
+	CreatedAt  time.Time  `json:"created_at"`
+	AcceptedAt *time.Time `json:"accepted_at"`
 }
 
 // 用户统计信息
