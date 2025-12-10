@@ -222,9 +222,9 @@ func (cm *ConnectionManager) sendToRoom(msg models.Message) {
 
 	// 发送给房间内所有在线成员（除了发送者自己）
 	for _, member := range members {
-		if member.ID == msg.SenderID {
-			continue // 不发送给自己
-		}
+		// if member.ID == msg.SenderID {
+		// 	continue // 不发送给自己
+		// }
 
 		if client, exists := cm.clients[member.ID]; exists && client.IsOnline {
 			select {

@@ -274,6 +274,85 @@ func RouterConfig(db *gorm.DB, redisClient interface{}) *gin.Engine {
 			// @Router /api/v1/user/rooms [get]
 			// @Security Bearer
 			auth.GET("/user/rooms", httpHandler.GetUserRooms)
+			
+			// 好友相关路由
+			// @Summary 添加好友
+			// @Description 发送好友请求
+			// @Tags 好友
+			// @Accept json
+			// @Produce json
+			// @Param request body object{friend_id=string} true "好友ID"
+			// @Success 200 {object} object{data=object{message=string}}
+			// @Failure 400 {object} object{error=string,message=string}
+			// @Failure 401 {object} object{error=string,message=string}
+			// @Failure 500 {object} object{error=string,message=string}
+			// @Router /api/v1/friends/add [post]
+			// @Security Bearer
+			auth.POST("/friends/add", httpHandler.AddFriend)
+			
+			// @Summary 删除好友
+			// @Description 删除好友关系
+			// @Tags 好友
+			// @Accept json
+			// @Produce json
+			// @Param request body object{friend_id=string} true "好友ID"
+			// @Success 200 {object} object{data=object{message=string}}
+			// @Failure 400 {object} object{error=string,message=string}
+			// @Failure 401 {object} object{error=string,message=string}
+			// @Failure 500 {object} object{error=string,message=string}
+			// @Router /api/v1/friends/remove [post]
+			// @Security Bearer
+			auth.POST("/friends/remove", httpHandler.RemoveFriend)
+			
+			// @Summary 获取好友列表
+			// @Description 获取当前用户的好友列表
+			// @Tags 好友
+			// @Produce json
+			// @Success 200 {object} object{data=[]object{id=string,username=string,avatar=string,status=string,last_seen=time.Time}}
+			// @Failure 401 {object} object{error=string,message=string}
+			// @Failure 500 {object} object{error=string,message=string}
+			// @Router /api/v1/friends [get]
+			// @Security Bearer
+			auth.GET("/friends", httpHandler.GetFriends)
+			
+			// @Summary 获取好友请求
+			// @Description 获取当前用户的好友请求列表
+			// @Tags 好友
+			// @Produce json
+			// @Success 200 {object} object{data=[]object{id=string,user_id=string,friend_id=string,status=string,created_at=time.Time}}
+			// @Failure 401 {object} object{error=string,message=string}
+			// @Failure 500 {object} object{error=string,message=string}
+			// @Router /api/v1/friends/requests [get]
+			// @Security Bearer
+			auth.GET("/friends/requests", httpHandler.GetFriendRequests)
+			
+			// @Summary 接受好友请求
+			// @Description 接受好友请求
+			// @Tags 好友
+			// @Accept json
+			// @Produce json
+			// @Param request body object{request_id=string} true "请求ID"
+			// @Success 200 {object} object{data=object{message=string}}
+			// @Failure 400 {object} object{error=string,message=string}
+			// @Failure 401 {object} object{error=string,message=string}
+			// @Failure 500 {object} object{error=string,message=string}
+			// @Router /api/v1/friends/accept [post]
+			// @Security Bearer
+			auth.POST("/friends/accept", httpHandler.AcceptFriendRequest)
+			
+			// @Summary 屏蔽用户
+			// @Description 屏蔽指定用户
+			// @Tags 好友
+			// @Accept json
+			// @Produce json
+			// @Param request body object{user_id=string} true "用户ID"
+			// @Success 200 {object} object{data=object{message=string}}
+			// @Failure 400 {object} object{error=string,message=string}
+			// @Failure 401 {object} object{error=string,message=string}
+			// @Failure 500 {object} object{error=string,message=string}
+			// @Router /api/v1/friends/block [post]
+			// @Security Bearer
+			auth.POST("/friends/block", httpHandler.BlockUser)
 		}
 	}
 

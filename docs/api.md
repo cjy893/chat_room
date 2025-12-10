@@ -124,6 +124,142 @@ Authorization: Bearer <token>
 }
 ```
 
+### 好友相关接口
+
+需要认证的接口，需在请求头中携带有效的JWT Token。
+
+#### 添加好友
+
+**POST** `/api/v1/friends/add`
+
+##### 请求参数
+
+| 参数名   | 类型   | 必填 | 说明   |
+| -------- | ------ | ---- | ------ |
+| friend_id| string | 是   | 好友ID |
+
+##### 响应结果
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "message": "好友请求已发送"
+  }
+}
+```
+
+#### 删除好友
+
+**POST** `/api/v1/friends/remove`
+
+##### 请求参数
+
+| 参数名   | 类型   | 必填 | 说明   |
+| -------- | ------ | ---- | ------ |
+| friend_id| string | 是   | 好友ID |
+
+##### 响应结果
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "message": "好友关系已解除"
+  }
+}
+```
+
+#### 获取好友列表
+
+**GET** `/api/v1/friends`
+
+##### 响应结果
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": [
+    {
+      "id": "用户ID",
+      "username": "用户名",
+      "avatar": "头像URL",
+      "status": "用户状态(online, offline, busy, away)",
+      "last_seen": "最后在线时间"
+    }
+  ]
+}
+```
+
+#### 获取好友请求列表
+
+**GET** `/api/v1/friends/requests`
+
+##### 响应结果
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": [
+    {
+      "id": "好友关系ID",
+      "user_id": "请求发起者ID",
+      "friend_id": "请求接收者ID",
+      "status": "状态(pending, accepted, blocked)",
+      "created_at": "创建时间"
+    }
+  ]
+}
+```
+
+#### 接受好友请求
+
+**POST** `/api/v1/friends/accept`
+
+##### 请求参数
+
+| 参数名    | 类型   | 必填 | 说明     |
+| --------- | ------ | ---- | -------- |
+| request_id| string | 是   | 请求ID   |
+
+##### 响应结果
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "message": "好友请求已接受"
+  }
+}
+```
+
+#### 屏蔽用户
+
+**POST** `/api/v1/friends/block`
+
+##### 请求参数
+
+| 参数名  | 类型   | 必填 | 说明   |
+| ------- | ------ | ---- | ------ |
+| user_id | string | 是   | 用户ID |
+
+##### 响应结果
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "message": "用户已屏蔽"
+  }
+}
+```
+
 ### 聊天相关接口
 
 #### 获取聊天记录

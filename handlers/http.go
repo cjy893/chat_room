@@ -657,3 +657,261 @@ func (h *HTTPHandler) GetUserRooms(c *gin.Context) {
 
 	utils.SuccessResponse(c, rooms)
 }
+
+// AddFriend adds a friend to the current user's friend list.
+//
+// Sends a friend request to another user.
+//
+// Request:
+//
+//	POST /api/v1/friends/add
+//	Content-Type: application/json
+//	{
+//	  "friend_id": "friend_uuid"
+//	}
+//
+// Response:
+//
+//	{
+//	  "code": 200,
+//	  "message": "success",
+//	  "data": {
+//	    "message": "好友请求已发送"
+//	  }
+//	}
+func (h *HTTPHandler) AddFriend(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		utils.ErrorResponse(c, http.StatusUnauthorized, "未授权", nil)
+		return
+	}
+
+	var req struct {
+		FriendID string `json:"friend_id" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.ErrorResponse(c, http.StatusBadRequest, "参数错误", err)
+		return
+	}
+
+	if err := h.userService.AddFriend(c.Request.Context(), userID.(string), req.FriendID); err != nil {
+		utils.ErrorResponse(c, http.StatusInternalServerError, "添加好友失败", err)
+		return
+	}
+
+	utils.SuccessResponse(c, gin.H{"message": "好友请求已发送"})
+}
+
+// RemoveFriend removes a friend from the current user's friend list.
+//
+// Deletes a friend relationship.
+//
+// Request:
+//
+//	POST /api/v1/friends/remove
+//	Content-Type: application/json
+//	{
+//	  "friend_id": "friend_uuid"
+//	}
+//
+// Response:
+//
+//	{
+//	  "code": 200,
+//	  "message": "success",
+//	  "data": {
+//	    "message": "好友关系已解除"
+//	  }
+//	}
+func (h *HTTPHandler) RemoveFriend(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		utils.ErrorResponse(c, http.StatusUnauthorized, "未授权", nil)
+		return
+	}
+
+	var req struct {
+		FriendID string `json:"friend_id" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.ErrorResponse(c, http.StatusBadRequest, "参数错误", err)
+		return
+	}
+
+	if err := h.userService.RemoveFriend(c.Request.Context(), userID.(string), req.FriendID); err != nil {
+		utils.ErrorResponse(c, http.StatusInternalServerError, "删除好友失败", err)
+		return
+	}
+
+	utils.SuccessResponse(c, gin.H{"message": "好友关系已解除"})
+}
+
+// GetFriends retrieves the list of friends for the current user.
+//
+// Returns information about all friends of the authenticated user.
+//
+// Request:
+//
+//	GET /api/v1/friends
+//
+// Response:
+//
+//	{
+//	  "code": 200,
+//	  "message": "success",
+//	  "data": [
+//	    {
+//	      "id": "user_uuid",
+//	      "username": "friend_username",
+//	      "avatar": "avatar_url",
+//	      "status": "online|offline|busy|away",
+//	      "last_seen": "2023-01-01T00:00:00Z"
+//	    }
+//	  ]
+//	}
+func (h *HTTPHandler) GetFriends(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		utils.ErrorResponse(c, http.StatusUnauthorized, "未授权", nil)
+		return
+	}
+
+	friends, err := h.userService.GetFriends(c.Request.Context(), userID.(string))
+	if err != nil {
+		utils.ErrorResponse(c, http.StatusInternalServerError, "获取好友列表失败", err)
+		return
+	}
+
+	utils.SuccessResponse(c, friends)
+}
+
+// GetFriendRequests retrieves the list of pending friend requests for the current user.
+//
+// Returns information about all pending friend requests (sent to or from the user).
+//
+// Request:
+//
+//	GET /api/v1/friends/requests
+//
+// Response:
+//
+//	{
+//	  "code": 200,
+//	  "message": "success",
+//	  "data": [
+//	    {
+//	      "id": "friendship_uuid",
+//	      "user_id": "requester_uuid",
+//	      "friend_id": "target_uuid",
+//	      "status": "pending",
+//	      "created_at": "2023-01-01T00:00:00Z"
+//	    }
+//	  ]
+//	}
+func (h *HTTPHandler) GetFriendRequests(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		utils.ErrorResponse(c, http.StatusUnauthorized, "未授权", nil)
+		return
+	}
+
+	requests, err := h.userService.GetFriendRequests(c.Request.Context(), userID.(string))
+	if err != nil {
+		utils.ErrorResponse(c, http.StatusInternalServerError, "获取好友请求失败", err)
+		return
+	}
+
+	utils.SuccessResponse(c, requests)
+}
+
+// AcceptFriendRequest accepts a pending friend request.
+//
+// Confirms a friend relationship.
+//
+// Request:
+//
+//	POST /api/v1/friends/accept
+//	Content-Type: application/json
+//	{
+//	  "request_id": "friendship_uuid"
+//	}
+//
+// Response:
+//
+//	{
+//	  "code": 200,
+//	  "message": "success",
+//	  "data": {
+//	    "message": "好友请求已接受"
+//	  }
+//	}
+func (h *HTTPHandler) AcceptFriendRequest(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		utils.ErrorResponse(c, http.StatusUnauthorized, "未授权", nil)
+		return
+	}
+
+	var req struct {
+		RequestID string `json:"request_id" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.ErrorResponse(c, http.StatusBadRequest, "参数错误", err)
+		return
+	}
+
+	if err := h.userService.AcceptFriendRequest(c.Request.Context(), userID.(string), req.RequestID); err != nil {
+		utils.ErrorResponse(c, http.StatusInternalServerError, "接受好友请求失败", err)
+		return
+	}
+
+	utils.SuccessResponse(c, gin.H{"message": "好友请求已接受"})
+}
+
+// BlockUser blocks a user from contacting the current user.
+//
+// Prevents a user from sending messages or friend requests.
+//
+// Request:
+//
+//	POST /api/v1/friends/block
+//	Content-Type: application/json
+//	{
+//	  "user_id": "target_uuid"
+//	}
+//
+// Response:
+//
+//	{
+//	  "code": 200,
+//	  "message": "success",
+//	  "data": {
+//	    "message": "用户已屏蔽"
+//	  }
+//	}
+func (h *HTTPHandler) BlockUser(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		utils.ErrorResponse(c, http.StatusUnauthorized, "未授权", nil)
+		return
+	}
+
+	var req struct {
+		UserID string `json:"user_id" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.ErrorResponse(c, http.StatusBadRequest, "参数错误", err)
+		return
+	}
+
+	if err := h.userService.BlockUser(c.Request.Context(), userID.(string), req.UserID); err != nil {
+		utils.ErrorResponse(c, http.StatusInternalServerError, "屏蔽用户失败", err)
+		return
+	}
+
+	utils.SuccessResponse(c, gin.H{"message": "用户已屏蔽"})
+}
