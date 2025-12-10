@@ -9,7 +9,6 @@ import (
 	"socket/manager"
 	"socket/models"
 	"socket/services"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -63,13 +62,15 @@ func NewWebSocketHandler(
 // User authentication can be provided either through query parameters or JWT token in the Authorization header.
 //
 // Request:
-//   GET /ws?user_id={user_id}&username={username}
-//   OR
-//   GET /ws
-//   Authorization: Bearer {jwt_token}
+//
+//	GET /ws?user_id={user_id}&username={username}
+//	OR
+//	GET /ws
+//	Authorization: Bearer {jwt_token}
 //
 // Response:
-//   101 Switching Protocols (on successful upgrade)
+//
+//	101 Switching Protocols (on successful upgrade)
 func (h *WebSocketHandler) Connect(c *gin.Context) {
 	// 获取用户身份（从JWT或查询参数）
 	userID := c.Query("user_id")
@@ -78,20 +79,12 @@ func (h *WebSocketHandler) Connect(c *gin.Context) {
 	// 如果查询参数中没有用户信息，则从 JWT token 中获取
 	if userID == "" || username == "" {
 		// 从 Authorization header 中获取 token
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
+		token := c.Query("token")
+
+		if token == "" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "缺少认证信息"})
 			return
 		}
-
-		// Bearer token 格式
-		parts := strings.SplitN(authHeader, " ", 2)
-		if len(parts) != 2 || parts[0] != "Bearer" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "令牌格式错误"})
-			return
-		}
-
-		token := parts[1]
 
 		// 解析 token 获取用户信息
 		ctx := c.Request.Context()
@@ -140,27 +133,20 @@ func (h *WebSocketHandler) Connect(c *gin.Context) {
 // registers the client, and automatically joins the specified room.
 //
 // Request:
-//   GET /ws/rooms/{room_id}
-//   Authorization: Bearer {jwt_token}
+//
+//	GET /ws/rooms/{room_id}
+//	Authorization: Bearer {jwt_token}
 //
 // Response:
-//   101 Switching Protocols (on successful upgrade)
+//
+//	101 Switching Protocols (on successful upgrade)
 func (h *WebSocketHandler) JoinRoom(c *gin.Context) {
-	// 从 JWT token 中获取用户信息
-	authHeader := c.GetHeader("Authorization")
-	if authHeader == "" {
+	token := c.Query("token")
+
+	if token == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "缺少认证信息"})
 		return
 	}
-
-	// Bearer token 格式
-	parts := strings.SplitN(authHeader, " ", 2)
-	if len(parts) != 2 || parts[0] != "Bearer" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "令牌格式错误"})
-		return
-	}
-
-	token := parts[1]
 
 	// 解析 token 获取用户信息
 	ctx := c.Request.Context()
