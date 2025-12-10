@@ -41,6 +41,7 @@ import (
 //   POST /api/v1/rooms/:room_id/join - Join a room
 //   POST /api/v1/rooms/:room_id/leave - Leave a room
 //   GET /api/v1/rooms/:room_id/members - Get room members
+//   GET /api/v1/user/rooms - Get user's rooms
 //
 // WebSocket Routes:
 //   GET /ws - Establish general WebSocket connection

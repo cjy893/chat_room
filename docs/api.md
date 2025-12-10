@@ -363,6 +363,38 @@ Authorization: Bearer <token>
 }
 ```
 
+#### 获取用户房间列表
+
+**GET** `/api/v1/user/rooms`
+
+##### 响应结果
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": [
+    {
+      "id": "房间ID",
+      "name": "房间名称",
+      "description": "房间描述",
+      "type": "房间类型",
+      "creator_id": "创建者ID",
+      "is_public": true,
+      "members": [
+        {
+          "id": "成员关系ID",
+          "room_id": "房间ID",
+          "user_id": "用户ID",
+          "role": "角色(owner, admin, member)",
+          "joined_at": "加入时间"
+        }
+      ]
+    }
+  ]
+}
+```
+
 ### WebSocket 接口
 
 #### 建立WebSocket连接
