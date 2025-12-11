@@ -210,6 +210,34 @@ func (s *chatServiceImpl) GetMessageStats(ctx context.Context, roomID string) (*
 // ==================== 房间管理 ====================
 
 func (s *chatServiceImpl) CreateRoom(ctx context.Context, room *models.ChatRoom) error {
+	// 确保房间有ID
+	if room.ID == "" {
+		room.ID = uuid.New().String()
+	}
+
+	// 确保房间成员有ID
+	for _, member := range room.Members {
+		if member.ID == "" {
+			member.ID = uuid.New().String()
+		}
+	}
+
+	// 确保时间字段被设置
+	now := time.Now()
+	if room.CreatedAt.IsZero() {
+		room.CreatedAt = now
+	}
+	room.UpdatedAt = now
+
+	// 设置默认值
+	if room.Type == "" {
+		room.Type = "group"
+	}
+	
+	if room.MaxMembers == 0 {
+		room.MaxMembers = 200
+	}
+
 	return s.roomRepo.Create(ctx, room)
 }
 

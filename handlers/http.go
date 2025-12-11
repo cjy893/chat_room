@@ -242,39 +242,15 @@ func (h *HTTPHandler) CreatePrivateChat(c *gin.Context) {
 		return
 	}
 
-	// 检查好友关系
-	// 这里应该调用服务层方法检查是否是好友关系
-	// 为简化实现，我们暂时跳过这个检查
-
 	// 创建私聊房间
-	room := &models.ChatRoom{
-		Name:      fmt.Sprintf("Private chat between %s and %s", userID, friendID),
-		Type:      "private",
-		IsPublic:  false,
-		CreatorID: userID.(string),
-		Members: []*models.RoomMember{
-			{
-				UserID:   userID.(string),
-				Role:     "member",
-				JoinedAt: time.Now(),
-			},
-			{
-				UserID:   friendID,
-				Role:     "member",
-				JoinedAt: time.Now(),
-			},
-		},
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
-
-	if err := h.chatService.CreateRoom(c.Request.Context(), room); err != nil {
+	roomID, err := h.chatService.CreatePrivateRoom(c.Request.Context(), userID.(string), friendID)
+	if err != nil {
 		utils.ErrorResponse(c, http.StatusInternalServerError, "创建私聊房间失败", err)
 		return
 	}
 
 	utils.SuccessResponse(c, gin.H{
-		"room_id": room.ID,
+		"room_id": roomID,
 	})
 }
 
