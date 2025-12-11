@@ -253,10 +253,20 @@ func (s *chatServiceImpl) CreatePrivateRoom(ctx context.Context, userID, friendI
 		return existingRoomID, nil
 	}
 
+	user, err := s.userRepo.GetByID(ctx, userID)
+	if err != nil {
+		return "", fmt.Errorf("获取用户信息失败: %w", err)
+	}
+
+	friend, err := s.userRepo.GetByID(ctx, friendID)
+	if err != nil {
+		return "", fmt.Errorf("获取好友信息失败: %w", err)
+	}
+
 	// 创建新的私聊房间
 	room := &models.ChatRoom{
 		ID:         uuid.New().String(),
-		Name:       "Private chat",
+		Name:       fmt.Sprintf("%s与%s的私聊", user.Username, friend.Username),
 		Type:       "private",
 		IsPublic:   false,
 		MaxMembers: 2,
