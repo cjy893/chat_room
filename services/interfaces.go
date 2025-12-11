@@ -59,6 +59,8 @@ type ChatService interface {
 
 	// 房间管理
 	CreateRoom(ctx context.Context, room *models.ChatRoom) error
+	CreatePrivateRoom(ctx context.Context, userID, friendID string) (string, error)
+	GetPrivateRoomBetweenUsers(ctx context.Context, userID, friendID string) (string, error)
 	JoinRoom(ctx context.Context, roomID, userID, role string) error
 	LeaveRoom(ctx context.Context, roomID, userID string) error
 	GetRoomMembers(ctx context.Context, roomID string) ([]*models.User, error)

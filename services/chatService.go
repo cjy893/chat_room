@@ -8,6 +8,8 @@ import (
 	"socket/repositories"
 	"strconv"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type chatServiceImpl struct {
@@ -89,32 +91,25 @@ func (s *chatServiceImpl) GetChatHistory(ctx context.Context, roomID, page, limi
 }
 
 func (s *chatServiceImpl) GetPrivateChatHistory(ctx context.Context, userID, friendID, page, limit string) (*models.MessageResponse, error) {
-	// 解析分页参数
-	pageInt, err := strconv.Atoi(page)
-	if err != nil || pageInt <= 0 {
-		pageInt = 1
+	// 查找这两个用户之间的私有房间
+	roomID, err := s.GetPrivateRoomBetweenUsers(ctx, userID, friendID)
+	if err != nil {
+		return nil, fmt.Errorf("查找私聊房间失败: %w", err)
 	}
 
-	limitInt, err := strconv.Atoi(limit)
-	if err != nil || limitInt <= 0 {
-		limitInt = 50
+	if roomID == "" {
+		// 如果没有私聊房间，返回空结果
+		return &models.MessageResponse{
+			Messages:    []models.Message{},
+			Total:       0,
+			CurrentPage: 1,
+			TotalPages:  0,
+			HasMore:     false,
+		}, nil
 	}
 
-	// 构建查询
-	query := &models.MessageQuery{
-		SenderID: userID,
-		Page:     pageInt,
-		PageSize: limitInt,
-		OrderBy:  "desc",
-	}
-
-	// 获取与朋友之间的消息
-	// 这里我们假设私聊是通过特殊的房间类型实现的
-	// 或者我们可以直接查询发送者和接收者之间的消息
-	
-	// 为了简单起见，我们现在直接查询数据库中与这两个用户相关的消息
-	// 实际实现可能需要根据具体的消息存储方式进行调整
-	return s.messageRepo.GetMessages(ctx, query)
+	// 获取房间消息记录
+	return s.GetChatHistory(ctx, roomID, page, limit)
 }
 
 func (s *chatServiceImpl) GetUnreadMessages(ctx context.Context, userID, roomID string) ([]*models.Message, error) {
@@ -216,6 +211,64 @@ func (s *chatServiceImpl) GetMessageStats(ctx context.Context, roomID string) (*
 
 func (s *chatServiceImpl) CreateRoom(ctx context.Context, room *models.ChatRoom) error {
 	return s.roomRepo.Create(ctx, room)
+}
+
+func (s *chatServiceImpl) CreatePrivateRoom(ctx context.Context, userID, friendID string) (string, error) {
+	// 检查是否已经有私聊房间
+	existingRoomID, err := s.GetPrivateRoomBetweenUsers(ctx, userID, friendID)
+	if err != nil {
+		return "", fmt.Errorf("检查现有私聊房间失败: %w", err)
+	}
+
+	if existingRoomID != "" {
+		// 如果已有房间，直接返回房间ID
+		return existingRoomID, nil
+	}
+
+	// 创建新的私聊房间
+	room := &models.ChatRoom{
+		ID:        uuid.New().String(),
+		Name:      fmt.Sprintf("Private chat"),
+		Type:      "private",
+		IsPublic:  false,
+		CreatorID: userID,
+		Members: []*models.RoomMember{
+			{
+				ID:       uuid.New().String(),
+				UserID:   userID,
+				Role:     "member",
+				JoinedAt: time.Now(),
+			},
+			{
+				ID:       uuid.New().String(),
+				UserID:   friendID,
+				Role:     "member",
+				JoinedAt: time.Now(),
+			},
+		},
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	if err := s.roomRepo.Create(ctx, room); err != nil {
+		return "", fmt.Errorf("创建私聊房间失败: %w", err)
+	}
+
+	return room.ID, nil
+}
+
+func (s *chatServiceImpl) GetPrivateRoomBetweenUsers(ctx context.Context, userID, friendID string) (string, error) {
+	// 查找两个用户共同参与的私有房间
+	room, err := s.roomRepo.GetPrivateRoomBetweenUsers(ctx, userID, friendID)
+	if err != nil {
+		return "", fmt.Errorf("查询私聊房间失败: %w", err)
+	}
+
+	if room == nil {
+		return "", nil // 没有找到私聊房间
+	}
+
+	return room.ID, nil
 }
 
 func (s *chatServiceImpl) JoinRoom(ctx context.Context, roomID, userID, role string) error {

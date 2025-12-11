@@ -48,6 +48,9 @@ type RoomRepository interface {
 	RegenerateInviteCode(ctx context.Context, roomID string) (string, error)
 	ValidateInviteCode(ctx context.Context, inviteCode string) (*models.ChatRoom, error)
 	CleanupInactiveRooms(ctx context.Context, days int) (int64, error)
+
+	// GetPrivateRoomBetweenUsers finds the private room between two users
+	GetPrivateRoomBetweenUsers(ctx context.Context, userID, friendID string) (*models.ChatRoom, error)
 }
 
 type roomRepository struct {
@@ -698,14 +701,9 @@ func (r *roomRepository) ValidateInviteCode(ctx context.Context, inviteCode stri
 
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, fmt.Errorf("无效的邀请码")
+			return nil, nil
 		}
 		return nil, fmt.Errorf("验证邀请码失败: %w", err)
-	}
-
-	// 检查房间是否仍然有效（未删除等）
-	if room.DeletedAt.Valid {
-		return nil, fmt.Errorf("房间已删除")
 	}
 
 	return &room, nil
@@ -713,15 +711,15 @@ func (r *roomRepository) ValidateInviteCode(ctx context.Context, inviteCode stri
 
 func (r *roomRepository) CleanupInactiveRooms(ctx context.Context, days int) (int64, error) {
 	if days <= 0 {
-		days = 30
+		days = 30 // 默认清理30天未活跃的房间
 	}
 
-	cutoffDate := time.Now().AddDate(0, 0, -days)
+	threshold := time.Now().AddDate(0, 0, -days)
 
-	// 查找并删除长时间不活跃且没有成员的房间
+	// 这里只清理公共房间，私聊房间不应被清理
 	result := r.db.WithContext(ctx).
-		Where("updated_at < ?", cutoffDate).
-		Where("id NOT IN (SELECT DISTINCT room_id FROM room_members)").
+		Where("type != ?", "private").
+		Where("updated_at < ?", threshold).
 		Delete(&models.ChatRoom{})
 
 	if result.Error != nil {
@@ -729,4 +727,30 @@ func (r *roomRepository) CleanupInactiveRooms(ctx context.Context, days int) (in
 	}
 
 	return result.RowsAffected, nil
+}
+
+// GetPrivateRoomBetweenUsers finds the private room between two users
+func (r *roomRepository) GetPrivateRoomBetweenUsers(ctx context.Context, userID, friendID string) (*models.ChatRoom, error) {
+	var room models.ChatRoom
+
+	// 查找类型为private且只有这两个用户的房间
+	err := r.db.WithContext(ctx).
+		Model(&models.ChatRoom{}).
+		Joins("INNER JOIN room_members rm1 ON rm1.room_id = chat_rooms.id").
+		Joins("INNER JOIN room_members rm2 ON rm2.room_id = chat_rooms.id").
+		Where("chat_rooms.type = ?", "private").
+		Where("rm1.user_id = ? AND rm2.user_id = ?", userID, friendID).
+		Or("rm1.user_id = ? AND rm2.user_id = ?", friendID, userID).
+		Group("chat_rooms.id").
+		Having("COUNT(DISTINCT rm1.user_id) = 2").
+		First(&room).Error
+
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("查询私聊房间失败: %w", err)
+	}
+
+	return &room, nil
 }

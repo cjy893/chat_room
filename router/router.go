@@ -354,6 +354,19 @@ func RouterConfig(db *gorm.DB, redisClient interface{}) *gin.Engine {
 			// @Security Bearer
 			auth.POST("/friends/block", httpHandler.BlockUser)
 			
+			// @Summary 创建私聊
+			// @Description 创建与指定好友的私聊房间
+			// @Tags 好友
+			// @Produce json
+			// @Param friend_id path string true "好友ID"
+			// @Success 200 {object} object{data=object{room_id=string}}
+			// @Failure 400 {object} object{error=string,message=string}
+			// @Failure 401 {object} object{error=string,message=string}
+			// @Failure 500 {object} object{error=string,message=string}
+			// @Router /api/v1/friends/{friend_id}/chat [post]
+			// @Security Bearer
+			auth.POST("/friends/:friend_id/chat", httpHandler.CreatePrivateChat)
+			
 			// @Summary 获取私聊记录
 			// @Description 获取与指定好友的私聊记录
 			// @Tags 好友

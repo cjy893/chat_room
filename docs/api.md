@@ -260,6 +260,28 @@ Authorization: Bearer <token>
 }
 ```
 
+#### 创建私聊
+
+**POST** `/api/v1/friends/{friend_id}/chat`
+
+##### 请求参数
+
+| 参数名   | 类型   | 必填 | 说明   |
+| -------- | ------ | ---- | ------ |
+| friend_id| string | 是   | 好友ID |
+
+##### 响应结果
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "room_id": "私聊房间ID"
+  }
+}
+```
+
 #### 获取私聊记录
 
 **GET** `/api/v1/friends/{friend_id}/messages`
