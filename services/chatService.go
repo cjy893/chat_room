@@ -233,7 +233,7 @@ func (s *chatServiceImpl) CreateRoom(ctx context.Context, room *models.ChatRoom)
 	if room.Type == "" {
 		room.Type = "group"
 	}
-	
+
 	if room.MaxMembers == 0 {
 		room.MaxMembers = 200
 	}
@@ -255,11 +255,13 @@ func (s *chatServiceImpl) CreatePrivateRoom(ctx context.Context, userID, friendI
 
 	// 创建新的私聊房间
 	room := &models.ChatRoom{
-		ID:        uuid.New().String(),
-		Name:      fmt.Sprintf("Private chat"),
-		Type:      "private",
-		IsPublic:  false,
-		CreatorID: userID,
+		ID:         uuid.New().String(),
+		Name:       "Private chat",
+		Type:       "private",
+		IsPublic:   false,
+		MaxMembers: 2,
+		InviteCode: uuid.New().String(),
+		CreatorID:  userID,
 		Members: []*models.RoomMember{
 			{
 				ID:       uuid.New().String(),
