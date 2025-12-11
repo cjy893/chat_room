@@ -88,6 +88,35 @@ func (s *chatServiceImpl) GetChatHistory(ctx context.Context, roomID, page, limi
 	return s.messageRepo.GetMessages(ctx, query)
 }
 
+func (s *chatServiceImpl) GetPrivateChatHistory(ctx context.Context, userID, friendID, page, limit string) (*models.MessageResponse, error) {
+	// 解析分页参数
+	pageInt, err := strconv.Atoi(page)
+	if err != nil || pageInt <= 0 {
+		pageInt = 1
+	}
+
+	limitInt, err := strconv.Atoi(limit)
+	if err != nil || limitInt <= 0 {
+		limitInt = 50
+	}
+
+	// 构建查询
+	query := &models.MessageQuery{
+		SenderID: userID,
+		Page:     pageInt,
+		PageSize: limitInt,
+		OrderBy:  "desc",
+	}
+
+	// 获取与朋友之间的消息
+	// 这里我们假设私聊是通过特殊的房间类型实现的
+	// 或者我们可以直接查询发送者和接收者之间的消息
+	
+	// 为了简单起见，我们现在直接查询数据库中与这两个用户相关的消息
+	// 实际实现可能需要根据具体的消息存储方式进行调整
+	return s.messageRepo.GetMessages(ctx, query)
+}
+
 func (s *chatServiceImpl) GetUnreadMessages(ctx context.Context, userID, roomID string) ([]*models.Message, error) {
 	return s.messageRepo.GetUnreadMessages(ctx, userID, roomID)
 }

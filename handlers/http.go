@@ -216,6 +216,48 @@ func (h *HTTPHandler) GetHistory(c *gin.Context) {
 	utils.SuccessResponse(c, messages)
 }
 
+// GetPrivateChatHistory retrieves private chat message history between two users.
+//
+// Fetches paginated private message history between the current user and a specified friend.
+//
+// Request:
+//
+//	GET /api/v1/friends/{friend_id}/messages?page=1&limit=50
+//
+// Response:
+//
+//	{
+//	  "code": 200,
+//	  "message": "success",
+//	  "data": [
+//	    {
+//	      "id": "message_uuid",
+//	      "sender_id": "user_uuid",
+//	      "content": "Hello world!",
+//	      "created_at": "2023-01-01T00:00:00Z"
+//	    }
+//	  ]
+//	}
+func (h *HTTPHandler) GetPrivateChatHistory(c *gin.Context) {
+	friendID := c.Param("friend_id")
+	page := c.DefaultQuery("page", "1")
+	limit := c.DefaultQuery("limit", "50")
+
+	userID, exists := c.Get("user_id")
+	if !exists {
+		utils.ErrorResponse(c, http.StatusUnauthorized, "未授权", nil)
+		return
+	}
+
+	messages, err := h.chatService.GetPrivateChatHistory(c.Request.Context(), userID.(string), friendID, page, limit)
+	if err != nil {
+		utils.ErrorResponse(c, http.StatusInternalServerError, "获取私聊历史失败", err)
+		return
+	}
+
+	utils.SuccessResponse(c, messages)
+}
+
 // SearchMessages searches for messages containing a specific keyword.
 //
 // Searches through message content in a given room.

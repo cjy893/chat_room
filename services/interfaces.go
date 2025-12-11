@@ -43,6 +43,7 @@ type ChatService interface {
 	// 消息管理
 	SendMessage(ctx context.Context, msg *models.Message) error
 	GetChatHistory(ctx context.Context, roomID, page, limit string) (*models.MessageResponse, error)
+	GetPrivateChatHistory(ctx context.Context, userID, friendID, page, limit string) (*models.MessageResponse, error)
 	GetUnreadMessages(ctx context.Context, userID, roomID string) ([]*models.Message, error)
 	SearchMessages(ctx context.Context, keyword, roomID, limit string) ([]*models.Message, error)
 	RecallMessage(ctx context.Context, messageID, userID, reason string) error

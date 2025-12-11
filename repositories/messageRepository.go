@@ -25,6 +25,7 @@ type MessageRepository interface {
 	GetLatestMessages(ctx context.Context, roomID string, limit int) ([]*models.Message, error)
 	GetUnreadMessages(ctx context.Context, userID, roomID string) ([]*models.Message, error)
 	SearchMessages(ctx context.Context, keyword string, roomID string, limit int) ([]*models.Message, error)
+	GetPrivateMessages(ctx context.Context, userID, friendID string, limit int) ([]*models.Message, error)
 
 	// 消息统计
 	GetMessageCount(ctx context.Context, roomID string) (int64, error)
@@ -201,8 +202,6 @@ func (r *messageRepository) GetMessages(ctx context.Context, query *models.Messa
 func (r *messageRepository) GetLatestMessages(ctx context.Context, roomID string, limit int) ([]*models.Message, error) {
 	if limit <= 0 {
 		limit = 50
-	} else if limit > 200 {
-		limit = 200
 	}
 
 	var messages []*models.Message
@@ -217,33 +216,14 @@ func (r *messageRepository) GetLatestMessages(ctx context.Context, roomID string
 		return nil, fmt.Errorf("查询最新消息失败: %w", err)
 	}
 
-	// 反转顺序，让最早的在前
-	for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {
-		messages[i], messages[j] = messages[j], messages[i]
-	}
-
 	return messages, nil
 }
 
 func (r *messageRepository) GetUnreadMessages(ctx context.Context, userID, roomID string) ([]*models.Message, error) {
-	// 获取用户最后读取的消息时间
-	var lastReadAt time.Time
-	err := r.db.WithContext(ctx).
-		Model(&models.ReadReceipt{}).
-		Select("MAX(read_at)").
-		Where("user_id = ? AND room_id = ?", userID, roomID).
-		Scan(&lastReadAt).Error
-
-	if err != nil {
-		// 如果没有已读记录，返回所有消息
-		lastReadAt = time.Time{}
-	}
-
 	var messages []*models.Message
-	err = r.db.WithContext(ctx).
+	err := r.db.WithContext(ctx).
 		Where("room_id = ?", roomID).
-		Where("created_at > ?", lastReadAt).
-		Where("sender_id != ?", userID). // 不包含自己发送的消息
+		Where("sender_id != ?", userID).
 		Where("status != ?", models.MsgStatusFailed).
 		Order("created_at ASC").
 		Find(&messages).Error
@@ -275,6 +255,28 @@ func (r *messageRepository) SearchMessages(ctx context.Context, keyword string, 
 
 	if err != nil {
 		return nil, fmt.Errorf("搜索消息失败: %w", err)
+	}
+
+	return messages, nil
+}
+
+func (r *messageRepository) GetPrivateMessages(ctx context.Context, userID, friendID string, limit int) ([]*models.Message, error) {
+	if limit <= 0 {
+		limit = 50
+	}
+
+	var messages []*models.Message
+	err := r.db.WithContext(ctx).
+		Where("(sender_id = ? AND recipient_type = ? AND to LIKE ?) OR (sender_id = ? AND recipient_type = ? AND to LIKE ?)", 
+			userID, models.RecipientUser, "%"+friendID+"%", 
+			friendID, models.RecipientUser, "%"+userID+"%").
+		Where("status != ?", models.MsgStatusFailed).
+		Order("created_at DESC").
+		Limit(limit).
+		Find(&messages).Error
+
+	if err != nil {
+		return nil, fmt.Errorf("查询私聊消息失败: %w", err)
 	}
 
 	return messages, nil

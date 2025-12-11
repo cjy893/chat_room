@@ -354,6 +354,21 @@ func RouterConfig(db *gorm.DB, redisClient interface{}) *gin.Engine {
 			// @Security Bearer
 			auth.POST("/friends/block", httpHandler.BlockUser)
 			
+			// @Summary 获取私聊记录
+			// @Description 获取与指定好友的私聊记录
+			// @Tags 好友
+			// @Produce json
+			// @Param friend_id path string true "好友ID"
+			// @Param page query string false "页码，默认为1" default(1)
+			// @Param limit query string false "每页数量，默认为50" default(50)
+			// @Success 200 {object} object{data=[]object{id=string,sender_id=string,content=string,created_at=time.Time}}
+			// @Failure 400 {object} object{error=string,message=string}
+			// @Failure 401 {object} object{error=string,message=string}
+			// @Failure 500 {object} object{error=string,message=string}
+			// @Router /api/v1/friends/{friend_id}/messages [get]
+			// @Security Bearer
+			auth.GET("/friends/:friend_id/messages", httpHandler.GetPrivateChatHistory)
+			
 			// 文件上传路由
 			// @Summary 上传文件
 			// @Description 上传文件并获取访问URL

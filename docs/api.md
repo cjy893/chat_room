@@ -260,6 +260,35 @@ Authorization: Bearer <token>
 }
 ```
 
+#### 获取私聊记录
+
+**GET** `/api/v1/friends/{friend_id}/messages`
+
+##### 请求参数
+
+| 参数名   | 类型   | 必填 | 默认值 | 说明     |
+| -------- | ------ | ---- | ------ | -------- |
+| friend_id| string | 是   | -      | 好友ID   |
+| page     | string | 否   | 1      | 页码     |
+| limit    | string | 否   | 50     | 每页条数 |
+
+##### 响应结果
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": [
+    {
+      "id": "消息ID",
+      "sender_id": "发送者ID",
+      "content": "消息内容",
+      "created_at": "创建时间"
+    }
+  ]
+}
+```
+
 ### 文件相关接口
 
 需要认证的接口，需在请求头中携带有效的JWT Token。
